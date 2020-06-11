@@ -13,6 +13,8 @@ bottle = "^0.12.18"
 bottle_tools = "^2019.12.22"
 tqdm = "^4.46.0"
 matplotlib = "^3.2.1"
+jupyter = "^1.0.0"
+ipython = "^7.15.0"
 
 [tool.poetry.dev-dependencies]
 pytest = "^5.2"
