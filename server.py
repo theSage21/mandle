@@ -22,12 +22,12 @@ def n_to_escape(c, escape=2, max_iter=100):
 
 def do_job(numbers):
     results = []
-    for c, i, j in numbers:
-        results.append((c, i, j, n_to_escape(c)))
+    for c, i, j, m in numbers:
+        results.append((c, i, j, n_to_escape(c, m)))
     return results
 
 
-def get_image(xmin, xmax, ymin, ymax, n_cells=DEFAULT_IMAGE_SIZE):
+def get_image(xmin, xmax, ymin, ymax, n_cells=DEFAULT_IMAGE_SIZE, maxiter=100):
     x_cells = np.linspace(xmin, xmax, num=n_cells)
     y_cells = np.linspace(ymin, ymax, num=n_cells)
     buf_size = 100
@@ -37,7 +37,7 @@ def get_image(xmin, xmax, ymin, ymax, n_cells=DEFAULT_IMAGE_SIZE):
         buf = []
         for i, x in enumerate(x_cells):
             for j, y in enumerate(y_cells):
-                buf.append((complex(x, y), i, j))
+                buf.append((complex(x, y), i, j, maxiter))
                 if len(buf) > buf_size:
                     yield buf
                     buf = []
@@ -65,9 +65,11 @@ def get_image(xmin, xmax, ymin, ymax, n_cells=DEFAULT_IMAGE_SIZE):
 app = bottle.Bottle()
 
 
-@app.get("/image/<xmin>/<xmax>/<ymin>/<ymax>/<step>")
-def image(xmin, xmax, ymin, ymax, step=DEFAULT_IMAGE_SIZE):
-    img = get_image(float(xmin), float(xmax), float(ymin), float(ymax), int(step))
+@app.get("/image/<xmin>/<xmax>/<ymin>/<ymax>/<step>/<maxiter>")
+def image(xmin, xmax, ymin, ymax, step=DEFAULT_IMAGE_SIZE, maxiter=100):
+    img = get_image(
+        float(xmin), float(xmax), float(ymin), float(ymax), int(step), int(maxiter)
+    )
     resp = bottle.Response(body=img, status=200)
     resp.set_header("Content-Type", "image/png")
     return resp
@@ -85,6 +87,7 @@ def home(
     new_x: int = None,
     new_y: int = None,
     newxy: str = None,
+    maxiter: int = 100,
 ):
     if newxy:
         x, y = newxy[1:].split(",")
@@ -110,7 +113,7 @@ def home(
         return bottle.redirect(
             app.get_url("home", zoom=zoom, xm=xm, xM=xM, ym=ym, yM=yM, s=s,)
         )
-    image_link = f"http://localhost:8080/image/{xm}/{xM}/{ym}/{yM}/{s}"
+    image_link = f"http://localhost:8080/image/{xm}/{xM}/{ym}/{yM}/{s}/{maxiter}"
     href_link = (
         app.get_url("home", zoom=zoom, xm=xm, xM=xM, ym=ym, yM=yM, s=s,) + "&newxy="
     )
